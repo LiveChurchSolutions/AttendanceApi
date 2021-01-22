@@ -7,13 +7,13 @@ const init = async () => {
     console.log("Connecting");
     Pool.initPool();
 
-    const givingTables: { title: string, file: string }[] = [
+    const attendanceTables: { title: string, file: string }[] = [
         { title: "Sessions", file: "sessions.mysql" },
         { title: "Visits", file: "visits.mysql" },
         { title: "VisitSessions", file: "visitSessions.mysql" }
     ];
 
-    await initTables("Giving", givingTables);
+    await initTables("Attendance", attendanceTables);
 }
 
 const initTables = async (displayName: string, tables: { title: string, file: string }[]) => {

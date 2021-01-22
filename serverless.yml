@@ -1,4 +1,4 @@
-service: giving-api
+service: attendance-api
 
 provider:
  name: aws
