@@ -8,9 +8,13 @@ const init = async () => {
     Pool.initPool();
 
     const attendanceTables: { title: string, file: string }[] = [
+        { title: "Campuses", file: "campuses.mysql" },
+        { title: "Services", file: "services.mysql" },
+        { title: "Service Times", file: "serviceTimes.mysql" },
+        { title: "Group Service Times", file: "groupServiceTimes.mysql" },
         { title: "Sessions", file: "sessions.mysql" },
         { title: "Visits", file: "visits.mysql" },
-        { title: "VisitSessions", file: "visitSessions.mysql" }
+        { title: "Visit Sessions", file: "visitSessions.mysql" }
     ];
 
     await initTables("Attendance", attendanceTables);
