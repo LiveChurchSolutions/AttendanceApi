@@ -1,13 +1,14 @@
-// import { Campus, Service, Group, ServiceTime } from "./"
+import { Campus, Service, ServiceTime } from "./"
 
 export class AttendanceRecord {
-    /*
+
     public campus?: Campus;
     public service?: Service;
     public serviceTime?: ServiceTime;
-    public group?: Group;
+    public groupId?: number
+    // public group?: Group;
     public visitDate?: Date;
     public week?: number;
     public count?: number;
-    public gender?: string;*/
+    // public gender?: string;*/
 }

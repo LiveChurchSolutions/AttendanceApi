@@ -1,6 +1,6 @@
 export { CustomBaseController, ErrorController, FormController, FormSubmissionController, NoteController, QuestionController, } from "../apiBase"
 
-// export { AttendanceRecordController } from "./AttendanceRecordController";
+export { AttendanceRecordController } from "./AttendanceRecordController";
 export { CampusController } from "./CampusController";
 export { GroupServiceTimeController } from "./GroupServiceTimeController";
 export { ServiceController } from "./ServiceController";

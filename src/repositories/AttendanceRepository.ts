@@ -1,10 +1,20 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
-// import { AttendanceRecord } from "../models";
-// import { DateTimeHelper } from '../helpers'
+import { AttendanceRecord } from "../models";
+import { DateTimeHelper } from '../helpers'
 
 @injectable()
 export class AttendanceRepository {
+
+    public async loadTree(churchId: number) {
+        const sql = "SELECT c.id as campusId, IFNULL(c.name, 'Unassigned') as campusName, s.id as serviceId, s.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName"
+            + " FROM campuses c"
+            + " LEFT JOIN services s on s.campusId = c.id"
+            + " LEFT JOIN serviceTimes st on st.serviceId = s.id"
+            + " WHERE(c.id is NULL or c.churchId = ?) AND IFNULL(st.removed, 0) = 0 AND IFNULL(s.removed, 0) = 0 AND IFNULL(c.removed, 0) = 0"
+            + " ORDER by campusName, serviceName, serviceTimeName";
+        return DB.query(sql, [churchId, churchId, churchId, churchId]);
+    }
 
     /*
     public async loadGroups(churchId: number) {
@@ -27,8 +37,24 @@ export class AttendanceRepository {
             + " ) combined"
             + " ORDER by campusName, serviceName, serviceTimeName, categoryName, groupName";
         return DB.query(sql, [churchId, churchId, churchId, churchId]);
+    }*/
+
+    public convertToModel(churchId: number, data: any) {
+        const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count };
+        if (data.campusId !== undefined || data.campusName !== undefined) result.campus = { id: data.campusId, name: data.campusName };
+        if (data.serviceId !== undefined || data.serviceName !== undefined) result.service = { id: data.serviceId, name: data.serviceName, campusId: data.campusId };
+        if (data.serviceTimeId !== undefined || data.serviceTimeName !== undefined) result.serviceTime = { id: data.serviceTimeId, name: data.serviceTimeName, serviceId: data.serviceId };
+        return result;
     }
 
+    public convertAllToModel(churchId: number, data: any[]) {
+        const result: AttendanceRecord[] = [];
+        data.forEach(d => result.push(this.convertToModel(churchId, d)));
+        return result;
+    }
+
+
+    // UNVALIDATED CODE BELOW
     public async loadForPerson(churchId: number, personId: number) {
         const sql = "SELECT v.visitDate, c.id as campusId, c.name as campusName, ser.id as serviceId, ser.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName, g.id as groupId, g.categoryName, g.name as groupName"
             + " FROM visits v"
@@ -89,19 +115,5 @@ export class AttendanceRepository {
         return result;
     }
 
-    public convertToModel(churchId: number, data: any) {
-        const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count, gender: data.gender };
-        if (data.groupId !== undefined || data.groupName !== undefined || data.categoryName !== undefined) result.group = { id: data.groupId, categoryName: data.categoryName, name: data.groupName };
-        if (data.campusId !== undefined || data.campusName !== undefined) result.campus = { id: data.campusId, name: data.campusName };
-        if (data.serviceId !== undefined || data.serviceName !== undefined) result.service = { id: data.serviceId, name: data.serviceName, campusId: data.campusId };
-        if (data.serviceTimeId !== undefined || data.serviceTimeName !== undefined) result.serviceTime = { id: data.serviceTimeId, name: data.serviceTimeName, serviceId: data.serviceId };
-        return result;
-    }
 
-    public convertAllToModel(churchId: number, data: any[]) {
-        const result: AttendanceRecord[] = [];
-        data.forEach(d => result.push(this.convertToModel(churchId, d)));
-        return result;
-    }
-*/
 }

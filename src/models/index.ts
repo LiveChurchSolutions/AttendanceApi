@@ -1,3 +1,4 @@
+export { AttendanceRecord } from "./AttendanceRecord";
 export { Campus } from './Campus';
 export { GroupServiceTime } from './GroupServiceTime';
 export { Service } from './Service';
