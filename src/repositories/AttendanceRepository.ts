@@ -9,9 +9,9 @@ export class AttendanceRepository {
     public async loadTree(churchId: number) {
         const sql = "SELECT c.id as campusId, IFNULL(c.name, 'Unassigned') as campusName, s.id as serviceId, s.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName"
             + " FROM campuses c"
-            + " LEFT JOIN services s on s.campusId = c.id"
-            + " LEFT JOIN serviceTimes st on st.serviceId = s.id"
-            + " WHERE(c.id is NULL or c.churchId = ?) AND IFNULL(st.removed, 0) = 0 AND IFNULL(s.removed, 0) = 0 AND IFNULL(c.removed, 0) = 0"
+            + " LEFT JOIN services s on s.campusId = c.id AND IFNULL(s.removed, 0) = 0"
+            + " LEFT JOIN serviceTimes st on st.serviceId = s.id AND IFNULL(st.removed, 0) = 0"
+            + " WHERE(c.id is NULL or c.churchId = ?) AND IFNULL(c.removed, 0) = 0"
             + " ORDER by campusName, serviceName, serviceTimeName";
         return DB.query(sql, [churchId, churchId, churchId, churchId]);
     }
@@ -42,8 +42,8 @@ export class AttendanceRepository {
     public convertToModel(churchId: number, data: any) {
         const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count };
         if (data.campusId !== undefined || data.campusName !== undefined) result.campus = { id: data.campusId, name: data.campusName };
-        if (data.serviceId !== undefined || data.serviceName !== undefined) result.service = { id: data.serviceId, name: data.serviceName, campusId: data.campusId };
-        if (data.serviceTimeId !== undefined || data.serviceTimeName !== undefined) result.serviceTime = { id: data.serviceTimeId, name: data.serviceTimeName, serviceId: data.serviceId };
+        if (data.serviceId !== null || data.serviceName !== null) result.service = { id: data.serviceId, name: data.serviceName, campusId: data.campusId };
+        if (data.serviceTimeId !== null || data.serviceTimeName !== null) result.serviceTime = { id: data.serviceTimeId, name: data.serviceTimeName, serviceId: data.serviceId };
         return result;
     }
 
