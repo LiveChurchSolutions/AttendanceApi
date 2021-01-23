@@ -6,10 +6,25 @@ import { AttendanceBaseController } from "./AttendanceBaseController";
 export class AttendanceRecordController extends AttendanceBaseController {
     @httpGet("/tree")
     public async tree(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
-        console.log("MADE IT")
         return this.actionWrapper(req, res, async (au) => {
             const data = await this.repositories.attendance.loadTree(au.churchId);
             return this.repositories.attendance.convertAllToModel(au.churchId, data);
+        });
+    }
+
+    @httpGet("/trend")
+    public async trend(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        console.log("TREND")
+        return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess("Attendance", "View Summary")) return this.json({}, 401);
+            else {
+                const campusId = (req.query.campusId === undefined) ? 0 : parseInt(req.query.campusId.toString(), 0);
+                const serviceId = (req.query.serviceId === undefined) ? 0 : parseInt(req.query.serviceId.toString(), 0);
+                const serviceTimeId = (req.query.serviceTimeId === undefined) ? 0 : parseInt(req.query.serviceTimeId.toString(), 0);
+                const groupId = (req.query.groupId === undefined) ? 0 : parseInt(req.query.groupId.toString(), 0);
+                const data = await this.repositories.attendance.loadTrend(au.churchId, campusId, serviceId, serviceTimeId, groupId);
+                return data;
+            }
         });
     }
 

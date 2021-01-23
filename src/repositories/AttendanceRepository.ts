@@ -16,28 +16,24 @@ export class AttendanceRepository {
         return DB.query(sql, [churchId, churchId, churchId, churchId]);
     }
 
-    /*
-    public async loadGroups(churchId: number) {
-        const sql = "SELECT * FROM ("
-            + "     SELECT c.id as campusId, IFNULL(c.name, 'Unassigned') as campusName, s.id as serviceId, s.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName, g.id as groupId, g.categoryName, g.name as groupName"
-            + "     FROM `groups` g"
-            + "     LEFT JOIN groupServiceTimes gst on gst.groupId = g.id"
-            + "     LEFT JOIN serviceTimes st on st.id = gst.serviceTimeId"
-            + "     LEFT JOIN services s on s.id = st.serviceId"
-            + "     LEFT JOIN campuses c on c.id = s.campusId"
-            + "     WHERE(c.id is NULL or c.churchId = ?) AND(g.id IS NULL or(g.churchId = ? AND g.trackAttendance = 1)) AND IFNULL(g.removed, 0) = 0 AND IFNULL(st.removed, 0) = 0 AND IFNULL(s.removed, 0) = 0 AND IFNULL(c.removed, 0) = 0"
-            + "     UNION"
-            + "     SELECT c2.id as campusId, IFNULL(c2.name, 'Unassigned') as campusName, s2.id as serviceId, s2.name as serviceName, st2.id as serviceTimeId, st2.name as serviceTimeName, g2.Id as groupId, g2.categoryName, g2.name as groupName"
-            + "     FROM `groups` g2"
-            + "     RIGHT JOIN groupServiceTimes gst2 on gst2.groupId = g2.id"
-            + "     RIGHT JOIN serviceTimes st2 on st2.id = gst2.serviceTimeId"
-            + "     RIGHT JOIN services s2 on s2.id = st2.serviceId"
-            + "     RIGHT JOIN campuses c2 on c2.id = s2.campusId"
-            + "     WHERE(c2.id is NULL or c2.churchId = ?) AND(g2.id IS NULL or(g2.churchId = ? AND g2.trackAttendance = 1)) AND IFNULL(g2.removed, 0) = 0 AND IFNULL(st2.removed, 0) = 0 AND IFNULL(s2.removed, 0) = 0 AND IFNULL(c2.removed, 0) = 0"
-            + " ) combined"
-            + " ORDER by campusName, serviceName, serviceTimeName, categoryName, groupName";
-        return DB.query(sql, [churchId, churchId, churchId, churchId]);
-    }*/
+    public async loadTrend(churchId: number, campusId: number, serviceId: number, serviceTimeId: number, groupId: number) {
+        const sql = "SELECT STR_TO_DATE(concat(year(v.visitDate), ' ', week(v.visitDate, 0), ' Sunday'), '%X %V %W') AS week, count(distinct(v.id)) as visits"
+            + " FROM visits v"
+            + " LEFT JOIN visitSessions vs on vs.visitId=v.id"
+            + " LEFT JOIN sessions s on s.id = vs.sessionId"
+            + " LEFT JOIN groupServiceTimes gst on gst.groupId = s.groupId"
+            + " LEFT JOIN serviceTimes st on st.id = gst.serviceTimeId"
+            + " LEFT JOIN services ser on ser.id = st.serviceId"
+            + " WHERE v.churchId=?"
+            + " AND ? IN (0, s.groupId)"
+            + " AND ? IN (0, st.id)"
+            + " AND ? IN (0, ser.id)"
+            + " AND ? IN (0, ser.campusId)"
+            + " GROUP BY year(v.visitDate), week(v.visitDate, 0), STR_TO_DATE(concat(year(v.visitDate), ' ', week(v.visitDate, 0), ' Sunday'), '%X %V %W')"
+            + " ORDER BY year(v.visitDate), week(v.visitDate, 0);";
+        const params = [churchId, groupId, serviceTimeId, serviceId, campusId];
+        return DB.query(sql, params);
+    }
 
     public convertToModel(churchId: number, data: any) {
         const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count };

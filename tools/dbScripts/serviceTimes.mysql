@@ -6,5 +6,7 @@ CREATE TABLE `serviceTimes` (
   `serviceId` int(11) DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `removed` bit(1) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `churchId` (`churchId`),
+  KEY `serviceId` (`serviceId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=109 DEFAULT CHARSET=latin1;

@@ -5,5 +5,8 @@ CREATE TABLE `visitSessions` (
   `churchId` int(11) DEFAULT NULL,
   `visitId` int(11) DEFAULT NULL,
   `sessionId` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `churchId` (`churchId`),
+  KEY `visitId` (`visitId`),
+  KEY `sessionId` (`sessionId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1172 DEFAULT CHARSET=latin1;

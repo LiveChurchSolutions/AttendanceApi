@@ -9,5 +9,9 @@ CREATE TABLE `visits` (
   `visitDate` datetime DEFAULT NULL,
   `checkinTime` datetime DEFAULT NULL,
   `addedBy` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `churchId` (`churchId`),
+  KEY `personId` (`personId`),
+  KEY `serviceId` (`serviceId`),
+  KEY `groupId` (`groupId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1209 DEFAULT CHARSET=latin1;

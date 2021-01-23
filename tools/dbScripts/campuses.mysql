@@ -10,5 +10,6 @@ CREATE TABLE `campuses` (
   `state` varchar(10) DEFAULT NULL,
   `zip` varchar(10) DEFAULT NULL,
   `removed` bit(1) DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `churchId` (`churchId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=latin1;
