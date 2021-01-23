@@ -14,7 +14,6 @@ export class AttendanceRecordController extends AttendanceBaseController {
 
     @httpGet("/trend")
     public async trend(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
-        console.log("TREND")
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess("Attendance", "View Summary")) return this.json({}, 401);
             else {
@@ -23,6 +22,19 @@ export class AttendanceRecordController extends AttendanceBaseController {
                 const serviceTimeId = (req.query.serviceTimeId === undefined) ? 0 : parseInt(req.query.serviceTimeId.toString(), 0);
                 const groupId = (req.query.groupId === undefined) ? 0 : parseInt(req.query.groupId.toString(), 0);
                 const data = await this.repositories.attendance.loadTrend(au.churchId, campusId, serviceId, serviceTimeId, groupId);
+                return data;
+            }
+        });
+    }
+
+    @httpGet("/groups")
+    public async group(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+        return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            else {
+                const serviceId = (req.query.serviceId === undefined) ? 0 : parseInt(req.query.serviceId.toString(), 0);
+                const week = (req.query.week === undefined) ? new Date() : Date.parse(req.query.week.toString());
+                const data = await this.repositories.attendance.loadGroups(au.churchId, serviceId, new Date(week));
                 return data;
             }
         });

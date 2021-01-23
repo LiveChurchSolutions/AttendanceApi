@@ -35,6 +35,21 @@ export class AttendanceRepository {
         return DB.query(sql, params);
     }
 
+    public async loadGroups(churchId: number, serviceId: number, week: Date) {
+        const sql = "SELECT ser.name as serviceName, st.name as serviceTimeName, s.groupId, v.personId"
+            + " FROM visits v"
+            + " INNER JOIN visitSessions vs on vs.churchId=v.churchId AND vs.visitId=v.id"
+            + " INNER JOIN sessions s on s.id=vs.sessionId"
+            + " INNER JOIN serviceTimes st on st.id=s.serviceTimeId"
+            + " INNER JOIN services ser on ser.id=st.serviceId"
+            + " WHERE v.churchId=?"
+            + " AND ? IN (0, ser.id) "
+            + " AND s.sessionDate BETWEEN ? AND DATE_ADD(?, INTERVAL 7 DAY)"
+            + " ORDER by ser.name, st.name";
+        const params = [churchId, serviceId, week, week];
+        return DB.query(sql, params);
+    }
+
     public convertToModel(churchId: number, data: any) {
         const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count };
         if (data.campusId !== undefined || data.campusName !== undefined) result.campus = { id: data.campusId, name: data.campusName };

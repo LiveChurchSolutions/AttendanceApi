@@ -58,10 +58,9 @@ export class VisitSessionRepository {
     }
 
     public async loadForSession(churchId: number, sessionId: number) {
-        const sql = "SELECT vs.*, v.personId, p.photoUpdated, p.displayName, p.email, p.photoUpdated FROM"
+        const sql = "SELECT vs.*, v.personId FROM"
             + " visitSessions vs"
             + " INNER JOIN visits v on v.id = vs.visitId"
-            + " INNER JOIN people p on p.id = v.personId"
             + " WHERE vs.churchId=? AND vs.sessionId = ?";
         return DB.query(sql, [churchId, sessionId]);
     }
