@@ -44,12 +44,13 @@ export class AttendanceRecordController extends AttendanceBaseController {
     public async load(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             const personId = (req.query.personId === undefined) ? 0 : parseInt(req.query.personId.toString(), 0);
-            let result;
+            let result = null;
 
             if (personId > 0) {
                 if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
                 else result = await this.repositories.attendance.loadForPerson(au.churchId, personId);
-            } else {
+            }
+            /*else {
                 if (!au.checkAccess("Attendance", "View Summary")) return this.json({}, 401);
                 else {
                     const campusId = (req.query.campusId === undefined) ? 0 : parseInt(req.query.campusId.toString(), 0);
@@ -63,7 +64,7 @@ export class AttendanceRecordController extends AttendanceBaseController {
                     const trend = (req.query.trend === undefined) ? false : req.query.trend.toString() === "true";
                     result = await this.repositories.attendance.load(au.churchId, campusId, serviceId, serviceTimeId, categoryName, groupId, startDate, endDate, groupBy, trend);
                 }
-            }
+            }*/
             return this.repositories.attendance.convertAllToModel(au.churchId, result);
         });
     }
