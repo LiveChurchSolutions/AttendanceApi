@@ -17,6 +17,7 @@ const init = async () => {
         { title: "Visit Sessions", file: "visitSessions.mysql" }
     ];
 
+    await DBCreator.init(["Settings"]);
     await initTables("Attendance", attendanceTables);
 }
 
