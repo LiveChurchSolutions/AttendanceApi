@@ -36,11 +36,13 @@ export class VisitController extends AttendanceBaseController {
 
             const result: Visit[] = []
             const serviceId = parseInt(req.query.serviceId.toString(), 0);
-            const householdId = parseInt(req.query.householdId.toString(), 0);
+            const peopleIdList = req.query.peopleIds.toString().split(",");
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
+            const peopleIds: number[] = [];
+            peopleIdList.forEach(id => peopleIds.push(parseInt(id, 0)));
 
-            const visits = this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByHouseholdServiceDate(au.churchId, householdId, serviceId, currentDate));
+            const visits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
             const visitIds: number[] = [];
             if (visits.length > 0) {
                 visits.forEach(v => visitIds.push(v.id));
@@ -76,7 +78,10 @@ export class VisitController extends AttendanceBaseController {
             currentDate.setHours(0, 0, 0, 0);
 
             const serviceId = parseInt(req.query.serviceId.toString(), 0);
-            const householdId = parseInt(req.query.householdId.toString(), 0);
+            const peopleIdList = req.query.peopleIds.toString().split(",");
+            const peopleIds: number[] = [];
+            peopleIdList.forEach(id => peopleIds.push(parseInt(id, 0)));
+
             const submittedVisits = [...req.body];
             submittedVisits.forEach(sv => {
                 sv.churchId = au.churchId;
@@ -90,7 +95,7 @@ export class VisitController extends AttendanceBaseController {
             });
 
             const existingVisitIds: number[] = [];
-            const existingVisits = this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByHouseholdServiceDate(au.churchId, householdId, serviceId, currentDate));
+            const existingVisits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
             if (existingVisits.length > 0) {
                 existingVisits.forEach(v => existingVisitIds.push(v.id));
                 const visitSessions = this.repositories.visitSession.convertAllToModel(au.churchId, await this.repositories.visitSession.loadByVisitIds(au.churchId, existingVisitIds));
@@ -156,6 +161,10 @@ export class VisitController extends AttendanceBaseController {
         existingVisits.forEach(existingVisit => {
             existingVisit.visitSessions = [];
             visitSessions.forEach(vs => { if (vs.visitId === existingVisit.id) existingVisit.visitSessions.push(vs); });
+
+            deleteVisitIds.push(existingVisit.id);
+            existingVisit.visitSessions.forEach(vs => deleteVisitSessionIds.push(vs.id));
+            /*
             const matchedSubmittedVisits: Visit[] = [];
             submittedVisits.forEach(v => { if (v.personId === existingVisit.personId) matchedSubmittedVisits.push(v); });
             if (matchedSubmittedVisits.length === 0) {
@@ -171,7 +180,7 @@ export class VisitController extends AttendanceBaseController {
                     if (matchedSessions.length === 0) deleteVisitIds.push(evs.id);
                     else matchedSessions[0].id = evs.id;
                 });
-            }
+            }*/
         });
     }
 

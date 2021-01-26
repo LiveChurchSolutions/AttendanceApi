@@ -49,10 +49,10 @@ export class VisitRepository {
         return DB.queryOne(sql, [churchId, sessionId, personId]);
     }
 
-    public async loadByHouseholdServiceDate(churchId: number, householdId: number, serviceId: number, visitDate: Date) {
+    public async loadByServiceDatePeopleIds(churchId: number, serviceId: number, visitDate: Date, peopleIds: number[]) {
         const vsDate = DateTimeHelper.toMysqlDate(visitDate);
-        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN (SELECT id FROM people WHERE householdId = ?)";
-        return DB.query(sql, [churchId, serviceId, vsDate, householdId]);
+        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN (" + peopleIds.join(",") + ")";
+        return DB.query(sql, [churchId, serviceId, vsDate]);
     }
 
     public async loadForPerson(churchId: number, personId: number) {
