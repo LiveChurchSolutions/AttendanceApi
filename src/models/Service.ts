@@ -1,4 +1,4 @@
-import { Campus } from './'
+import { Campus } from "./"
 export class Service {
     public id?: number;
     public churchId?: number;
