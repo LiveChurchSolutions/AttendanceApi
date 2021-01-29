@@ -2,6 +2,7 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } f
 import express from "express";
 import { AttendanceBaseController } from "./AttendanceBaseController"
 import { VisitSession, Visit, Session } from "../models"
+import { Permissions } from "../helpers";
 
 @controller("/visitsessions")
 export class VisitSessionController extends AttendanceBaseController {
@@ -9,7 +10,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpPost("/log")
     public async log(req: express.Request<{}, {}, Visit>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else {
                 const sessionId = req.body.visitSessions[0].sessionId;
                 const personId = req.body.personId;
@@ -44,7 +45,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpGet("/:id")
     public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
                 const data = await this.repositories.visitSession.load(au.churchId, id);
                 return this.repositories.visitSession.convertToModel(au.churchId, data);
@@ -55,7 +56,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
                 let data;
                 const sessionId = (req.query.sessionId === undefined) ? 0 : parseInt(req.query.sessionId.toString(), 0);
@@ -69,7 +70,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, VisitSession[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<VisitSession>[] = [];
                 req.body.forEach(visitsession => { visitsession.churchId = au.churchId; promises.push(this.repositories.visitSession.save(visitsession)); });
@@ -82,7 +83,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else await this.repositories.visitSession.delete(au.churchId, id);
         });
     }
@@ -90,7 +91,7 @@ export class VisitSessionController extends AttendanceBaseController {
     @httpDelete("/")
     public async deleteSessionPerson(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else {
                 const personId = parseInt(req.query.personId.toString(), 0);
                 const sessionId = parseInt(req.query.sessionId.toString(), 0);

@@ -1,6 +1,7 @@
 import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } from "inversify-express-utils";
 import express from "express";
 import { AttendanceBaseController } from "./AttendanceBaseController";
+import { Permissions } from "../helpers";
 
 @controller("/attendancerecords")
 export class AttendanceRecordController extends AttendanceBaseController {
@@ -15,7 +16,7 @@ export class AttendanceRecordController extends AttendanceBaseController {
     @httpGet("/trend")
     public async trend(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View Summary")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.viewSummary)) return this.json({}, 401);
             else {
                 const campusId = (req.query.campusId === undefined) ? 0 : parseInt(req.query.campusId.toString(), 0);
                 const serviceId = (req.query.serviceId === undefined) ? 0 : parseInt(req.query.serviceId.toString(), 0);
@@ -30,7 +31,7 @@ export class AttendanceRecordController extends AttendanceBaseController {
     @httpGet("/groups")
     public async group(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
                 const serviceId = (req.query.serviceId === undefined) ? 0 : parseInt(req.query.serviceId.toString(), 0);
                 const week = (req.query.week === undefined) ? new Date() : Date.parse(req.query.week.toString());
@@ -47,7 +48,7 @@ export class AttendanceRecordController extends AttendanceBaseController {
             let result = null;
 
             if (personId > 0) {
-                if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+                if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
                 else result = await this.repositories.attendance.loadForPerson(au.churchId, personId);
             }
             /*else {

@@ -2,6 +2,7 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } f
 import express from "express";
 import { AttendanceBaseController } from "./AttendanceBaseController"
 import { Visit, VisitSession, Session } from "../models"
+import { Permissions } from "../helpers";
 
 interface IdCache {
     [name: string]: number;
@@ -117,7 +118,7 @@ export class VisitController extends AttendanceBaseController {
     @httpGet("/:id")
     public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else return this.repositories.visit.convertToModel(au.churchId, await this.repositories.visit.load(au.churchId, id));
         });
     }
@@ -125,7 +126,7 @@ export class VisitController extends AttendanceBaseController {
     @httpGet("/")
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "View")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
                 let result = null;
                 if (req.query.personId !== undefined) result = await this.repositories.visit.loadForPerson(au.churchId, parseInt(req.query.personId.toString(), 0));
@@ -138,7 +139,7 @@ export class VisitController extends AttendanceBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, Visit[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Attendance", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<Visit>[] = [];
                 req.body.forEach(visit => { visit.churchId = au.churchId; promises.push(this.repositories.visit.save(visit)); });
@@ -151,7 +152,7 @@ export class VisitController extends AttendanceBaseController {
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Donations", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else await this.repositories.visit.delete(au.churchId, id);
         });
     }

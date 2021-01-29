@@ -2,6 +2,7 @@ import { controller, httpPost, httpGet, interfaces, requestParam, httpDelete } f
 import express from "express";
 import { AttendanceBaseController } from "./AttendanceBaseController"
 import { ServiceTime, GroupServiceTime } from "../models"
+import { Permissions } from "../helpers";
 
 @controller("/servicetimes")
 export class ServiceTimeController extends AttendanceBaseController {
@@ -38,7 +39,7 @@ export class ServiceTimeController extends AttendanceBaseController {
     @httpPost("/")
     public async save(req: express.Request<{}, {}, ServiceTime[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Services", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.services.edit)) return this.json({}, 401);
             else {
                 const promises: Promise<ServiceTime>[] = [];
                 req.body.forEach(servicetime => { servicetime.churchId = au.churchId; promises.push(this.repositories.serviceTime.save(servicetime)); });
@@ -51,7 +52,7 @@ export class ServiceTimeController extends AttendanceBaseController {
     @httpDelete("/:id")
     public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            if (!au.checkAccess("Services", "Edit")) return this.json({}, 401);
+            if (!au.checkAccess(Permissions.services.edit)) return this.json({}, 401);
             else await this.repositories.serviceTime.delete(au.churchId, id);
         });
     }
