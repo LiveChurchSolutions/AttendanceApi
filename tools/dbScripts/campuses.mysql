@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `campuses`;
 
 CREATE TABLE `campuses` (
-  `id` char(11) NOT NULL AUTO_INCREMENT,
+  `id` char(11) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
   `name` varchar(255) DEFAULT NULL,
   `address1` varchar(50) DEFAULT NULL,
@@ -13,4 +13,4 @@ CREATE TABLE `campuses` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `churchId` (`churchId`)
-) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;

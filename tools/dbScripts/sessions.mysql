@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `sessions`;
 
 CREATE TABLE `sessions` (
-  `id` char(11) NOT NULL AUTO_INCREMENT,
+  `id` char(11) NOT NULL,
   `churchId` char(11) DEFAULT NULL,
   `groupId` char(11) DEFAULT NULL,
   `serviceTimeId` char(11) DEFAULT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE `sessions` (
   KEY `churchId` (`churchId`),
   KEY `groupId` (`groupId`),
   KEY `serviceTimeId` (`serviceTimeId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1125 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
