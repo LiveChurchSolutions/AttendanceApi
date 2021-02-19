@@ -6,7 +6,7 @@ import { AttendanceBaseController } from "./AttendanceBaseController";
 @controller("/churches")
 export class ChurchController extends AttendanceBaseController {
 
-    async validateInit(churchId: number) {
+    async validateInit(churchId: string) {
         const errors = [];
         const campuses = await this.repositories.campus.loadAll(churchId);
         if (campuses.length > 0) errors.push("Church already initialized");

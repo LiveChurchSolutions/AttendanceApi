@@ -1,9 +1,9 @@
 // import { Group } from "./";
 
 export class ServiceTime {
-    public id?: number;
-    public churchId?: number;
-    public serviceId?: number;
+    public id?: string;
+    public churchId?: string;
+    public serviceId?: string;
     public name?: string;
 
     public longName?: string;

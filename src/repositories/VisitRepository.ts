@@ -2,21 +2,23 @@ import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Visit } from "../models";
 import { DateTimeHelper } from '../helpers'
+import { UniqueIdHelper } from "../helpers";
 
 @injectable()
 export class VisitRepository {
 
     public async save(visit: Visit) {
-        if (visit.id > 0) return this.update(visit); else return this.create(visit);
+        if (UniqueIdHelper.isMissing(visit.id)) return this.create(visit); else return this.update(visit);
     }
 
     public async create(visit: Visit) {
+        visit.id = UniqueIdHelper.shortId();
         const visitDate = DateTimeHelper.toMysqlDate(visit.visitDate);
         const checkinTime = DateTimeHelper.toMysqlDate(visit.checkinTime);
         return DB.query(
-            "INSERT INTO visits (churchId, personId, serviceId, groupId, visitDate, checkinTime, addedBy) VALUES (?, ?, ?, ?, ?, ?, ?);",
-            [visit.churchId, visit.personId, visit.serviceId, visit.groupId, visitDate, checkinTime, visit.addedBy]
-        ).then((row: any) => { visit.id = row.insertId; return visit; });
+            "INSERT INTO visits (id, churchId, personId, serviceId, groupId, visitDate, checkinTime, addedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+            [visit.id, visit.churchId, visit.personId, visit.serviceId, visit.groupId, visitDate, checkinTime, visit.addedBy]
+        ).then(() => { return visit; });
     }
 
     public async update(visit: Visit) {
@@ -28,19 +30,19 @@ export class VisitRepository {
         ).then(() => { return visit });
     }
 
-    public async delete(churchId: number, id: number) {
+    public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM visits WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: number, id: number) {
+    public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM visits WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: number) {
+    public async loadAll(churchId: string) {
         return DB.query("SELECT * FROM visits WHERE churchId=?;", [churchId]);
     }
 
-    public async loadForSessionPerson(churchId: number, sessionId: number, personId: number) {
+    public async loadForSessionPerson(churchId: string, sessionId: string, personId: string) {
         const sql = "SELECT v.*"
             + " FROM sessions s"
             + " LEFT OUTER JOIN serviceTimes st on st.id = s.serviceTimeId"
@@ -49,22 +51,22 @@ export class VisitRepository {
         return DB.queryOne(sql, [churchId, sessionId, personId]);
     }
 
-    public async loadByServiceDatePeopleIds(churchId: number, serviceId: number, visitDate: Date, peopleIds: number[]) {
+    public async loadByServiceDatePeopleIds(churchId: string, serviceId: string, visitDate: Date, peopleIds: string[]) {
         const vsDate = DateTimeHelper.toMysqlDate(visitDate);
         const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN (" + peopleIds.join(",") + ")";
         return DB.query(sql, [churchId, serviceId, vsDate]);
     }
 
-    public async loadForPerson(churchId: number, personId: number) {
+    public async loadForPerson(churchId: string, personId: string) {
         return DB.query("SELECT * FROM visits WHERE churchId=? AND personId=?", [churchId, personId]);
     }
 
-    public convertToModel(churchId: number, data: any) {
+    public convertToModel(churchId: string, data: any) {
         const result: Visit = { id: data.id, personId: data.personId, serviceId: data.serviceId, groupId: data.groupId, visitDate: data.visitDate, checkinTime: data.checkinTime };
         return result;
     }
 
-    public convertAllToModel(churchId: number, data: any[]) {
+    public convertAllToModel(churchId: string, data: any[]) {
         const result: Visit[] = [];
         data.forEach(d => result.push(this.convertToModel(churchId, d)));
         return result;

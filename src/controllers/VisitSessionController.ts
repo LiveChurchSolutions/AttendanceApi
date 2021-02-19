@@ -43,7 +43,7 @@ export class VisitSessionController extends AttendanceBaseController {
     }
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
@@ -59,8 +59,8 @@ export class VisitSessionController extends AttendanceBaseController {
             if (!au.checkAccess(Permissions.attendance.view)) return this.json({}, 401);
             else {
                 let data;
-                const sessionId = (req.query.sessionId === undefined) ? 0 : parseInt(req.query.sessionId.toString(), 0);
-                if (sessionId > 0) data = await this.repositories.visitSession.loadForSession(au.churchId, sessionId);
+                const sessionId = (req.query.sessionId === undefined) ? "" : req.query.sessionId.toString();
+                if (sessionId !== "") data = await this.repositories.visitSession.loadForSession(au.churchId, sessionId);
                 else data = await this.repositories.visitSession.loadAll(au.churchId);
                 return this.repositories.visitSession.convertAllToModel(au.churchId, data);
             }
@@ -81,7 +81,7 @@ export class VisitSessionController extends AttendanceBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else await this.repositories.visitSession.delete(au.churchId, id);
@@ -89,12 +89,12 @@ export class VisitSessionController extends AttendanceBaseController {
     }
 
     @httpDelete("/")
-    public async deleteSessionPerson(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async deleteSessionPerson(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.attendance.edit)) return this.json({}, 401);
             else {
-                const personId = parseInt(req.query.personId.toString(), 0);
-                const sessionId = parseInt(req.query.sessionId.toString(), 0);
+                const personId = req.query.personId.toString();
+                const sessionId = req.query.sessionId.toString();
                 const visit = await this.repositories.visit.loadForSessionPerson(au.churchId, sessionId, personId);
                 if (visit !== null) {
                     const existingSession = await this.repositories.visitSession.loadByVisitIdSessionId(au.churchId, visit.id, sessionId);

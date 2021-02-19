@@ -1,8 +1,8 @@
 export class Session {
-    public id?: number;
-    public churchId?: number;
-    public groupId?: number;
-    public serviceTimeId?: number;
+    public id?: string;
+    public churchId?: string;
+    public groupId?: string;
+    public serviceTimeId?: string;
     public sessionDate?: Date;
 
     public displayName?: string;

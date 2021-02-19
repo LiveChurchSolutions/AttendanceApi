@@ -1,12 +1,11 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { AttendanceRecord } from "../models";
-import { DateTimeHelper } from '../helpers'
 
 @injectable()
 export class AttendanceRepository {
 
-    public async loadTree(churchId: number) {
+    public async loadTree(churchId: string) {
         const sql = "SELECT c.id as campusId, IFNULL(c.name, 'Unassigned') as campusName, s.id as serviceId, s.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName"
             + " FROM campuses c"
             + " LEFT JOIN services s on s.campusId = c.id AND IFNULL(s.removed, 0) = 0"
@@ -16,7 +15,7 @@ export class AttendanceRepository {
         return DB.query(sql, [churchId, churchId, churchId, churchId]);
     }
 
-    public async loadTrend(churchId: number, campusId: number, serviceId: number, serviceTimeId: number, groupId: number) {
+    public async loadTrend(churchId: string, campusId: string, serviceId: string, serviceTimeId: string, groupId: string) {
         const sql = "SELECT STR_TO_DATE(concat(year(v.visitDate), ' ', week(v.visitDate, 0), ' Sunday'), '%X %V %W') AS week, count(distinct(v.id)) as visits"
             + " FROM visits v"
             + " LEFT JOIN visitSessions vs on vs.visitId=v.id"
@@ -35,7 +34,7 @@ export class AttendanceRepository {
         return DB.query(sql, params);
     }
 
-    public async loadGroups(churchId: number, serviceId: number, week: Date) {
+    public async loadGroups(churchId: string, serviceId: string, week: Date) {
         const sql = "SELECT ser.name as serviceName, st.name as serviceTimeName, s.groupId, v.personId"
             + " FROM visits v"
             + " INNER JOIN visitSessions vs on vs.churchId=v.churchId AND vs.visitId=v.id"
@@ -50,7 +49,7 @@ export class AttendanceRepository {
         return DB.query(sql, params);
     }
 
-    public convertToModel(churchId: number, data: any) {
+    public convertToModel(churchId: string, data: any) {
         const result: AttendanceRecord = { visitDate: data.visitDate, week: data.week, count: data.count, groupId: data.groupId };
         if (data.campusId !== undefined || data.campusName !== undefined) result.campus = { id: data.campusId, name: data.campusName };
         if (data.serviceId !== null || data.serviceName !== null) result.service = { id: data.serviceId, name: data.serviceName, campusId: data.campusId };
@@ -58,13 +57,13 @@ export class AttendanceRepository {
         return result;
     }
 
-    public convertAllToModel(churchId: number, data: any[]) {
+    public convertAllToModel(churchId: string, data: any[]) {
         const result: AttendanceRecord[] = [];
         data.forEach(d => result.push(this.convertToModel(churchId, d)));
         return result;
     }
 
-    public async loadForPerson(churchId: number, personId: number) {
+    public async loadForPerson(churchId: string, personId: string) {
         const sql = "SELECT v.visitDate, c.id as campusId, c.name as campusName, ser.id as serviceId, ser.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName, s.groupId"
             + " FROM visits v"
             + " INNER JOIN visitSessions vs on vs.visitId = v.id"

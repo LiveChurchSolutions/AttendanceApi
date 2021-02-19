@@ -1,8 +1,8 @@
 import { Campus } from "./"
 export class Service {
-    public id?: number;
-    public churchId?: number;
-    public campusId?: number;
+    public id?: string;
+    public churchId?: string;
+    public campusId?: string;
     public name?: string;
 
     public campus?: Campus;

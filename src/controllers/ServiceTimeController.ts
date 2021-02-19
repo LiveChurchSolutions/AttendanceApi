@@ -10,14 +10,14 @@ export class ServiceTimeController extends AttendanceBaseController {
     @httpGet("/search")
     public async search(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            const campusId = parseInt(req.query.campusId.toString(), 0);
-            const serviceId = parseInt(req.query.serviceId.toString(), 0);
+            const campusId = req.query.campusId.toString();
+            const serviceId = req.query.serviceId.toString();
             return this.repositories.serviceTime.convertAllToModel(au.churchId, await this.repositories.serviceTime.loadByChurchCampusService(au.churchId, campusId, serviceId));
         });
     }
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             return this.repositories.serviceTime.convertToModel(au.churchId, await this.repositories.serviceTime.load(au.churchId, id));
         });
@@ -28,7 +28,7 @@ export class ServiceTimeController extends AttendanceBaseController {
         return this.actionWrapper(req, res, async (au) => {
             // return await this.repositories.serviceTime.loadAll(au.churchId);
             let result = null;
-            if (req.query.serviceId !== undefined) result = await this.repositories.serviceTime.loadNamesByServiceId(au.churchId, parseInt(req.query.serviceId.toString(), 0));
+            if (req.query.serviceId !== undefined) result = await this.repositories.serviceTime.loadNamesByServiceId(au.churchId, req.query.serviceId.toString());
             else result = await this.repositories.serviceTime.loadNamesWithCampusService(au.churchId);
             result = this.repositories.serviceTime.convertAllToModel(au.churchId, result);
             if (result.length > 0 && this.include(req, "groups")) await this.appendGroups(au.churchId, result);
@@ -50,18 +50,18 @@ export class ServiceTimeController extends AttendanceBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.services.edit)) return this.json({}, 401);
             else await this.repositories.serviceTime.delete(au.churchId, id);
         });
     }
 
-    private async appendGroups(churchId: number, times: ServiceTime[]) {
-        const timeIds: number[] = [];
+    private async appendGroups(churchId: string, times: ServiceTime[]) {
+        const timeIds: string[] = [];
         times.forEach(t => { timeIds.push(t.id) });
         const allGroupServiceTimes: GroupServiceTime[] = await this.repositories.groupServiceTime.loadByServiceTimeIds(churchId, timeIds);
-        const allGroupIds: number[] = [];
+        const allGroupIds: string[] = [];
         allGroupServiceTimes.forEach(gst => { if (allGroupIds.indexOf(gst.groupId) === -1) allGroupIds.push(gst.groupId); });
 
         // todo replace

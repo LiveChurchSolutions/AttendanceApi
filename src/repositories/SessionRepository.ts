@@ -2,20 +2,22 @@ import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Session } from "../models";
 import { DateTimeHelper } from '../helpers'
+import { UniqueIdHelper } from "../helpers";
 
 @injectable()
 export class SessionRepository {
 
     public async save(session: Session) {
-        if (session.id > 0) return this.update(session); else return this.create(session);
+        if (UniqueIdHelper.isMissing(session.id)) return this.create(session); else return this.update(session);
     }
 
     public async create(session: Session) {
+        session.id = UniqueIdHelper.shortId();
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
         return DB.query(
-            "INSERT INTO sessions (churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?);",
-            [session.churchId, session.groupId, session.serviceTimeId, sessionDate]
-        ).then((row: any) => { session.id = row.insertId; return session; });
+            "INSERT INTO sessions (id, churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?, ?);",
+            [session.id, session.churchId, session.groupId, session.serviceTimeId, sessionDate]
+        ).then(() => { return session; });
     }
 
     public async update(session: Session) {
@@ -26,28 +28,28 @@ export class SessionRepository {
         ).then(() => { return session });
     }
 
-    public async delete(churchId: number, id: number) {
+    public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM sessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: number, id: number) {
+    public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM sessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadByIds(churchId: number, ids: number[]) {
+    public async loadByIds(churchId: string, ids: string[]) {
         return DB.query("SELECT * FROM sessions WHERE churchId=? AND id IN (" + ids.join(",") + ");", [churchId]);
     }
 
-    public async loadAll(churchId: number) {
+    public async loadAll(churchId: string) {
         return DB.query("SELECT * FROM sessions WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByGroupServiceTimeDate(churchId: number, groupId: number, serviceTimeId: number, sessionDate: Date) {
+    public async loadByGroupServiceTimeDate(churchId: string, groupId: string, serviceTimeId: string, sessionDate: Date) {
         const sessDate = DateTimeHelper.toMysqlDate(sessionDate);
         return DB.queryOne("SELECT * FROM sessions WHERE churchId=? AND groupId = ? AND serviceTimeId = ? AND sessionDate = ?;", [churchId, groupId, serviceTimeId, sessDate]);
     }
 
-    public async loadByGroupIdWithNames(churchId: number, groupId: number) {
+    public async loadByGroupIdWithNames(churchId: string, groupId: string) {
         const sql = "select s.id, "
             + " CASE"
             + "     WHEN st.name IS NULL THEN DATE_FORMAT(sessionDate, '%m/%d/%Y')"
@@ -60,12 +62,12 @@ export class SessionRepository {
         return DB.query(sql, [churchId, groupId]);
     }
 
-    public convertToModel(churchId: number, data: any) {
+    public convertToModel(churchId: string, data: any) {
         const result: Session = { id: data.id, groupId: data.groupId, serviceTimeId: data.serviceTimeId, sessionDate: data.sessionDate, displayName: data.displayName };
         return result;
     }
 
-    public convertAllToModel(churchId: number, data: any[]) {
+    public convertAllToModel(churchId: string, data: any[]) {
         const result: Session[] = [];
         data.forEach(d => result.push(this.convertToModel(churchId, d)));
         return result;

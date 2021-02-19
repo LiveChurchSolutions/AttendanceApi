@@ -10,12 +10,12 @@ export class ServiceController extends AttendanceBaseController {
     @httpGet("/search")
     public async search(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            return this.repositories.service.convertAllToModel(au.churchId, await this.repositories.service.searchByCampus(au.churchId, parseInt(req.query.campusId.toString(), 0)));
+            return this.repositories.service.convertAllToModel(au.churchId, await this.repositories.service.searchByCampus(au.churchId, req.query.campusId.toString()));
         });
     }
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             return this.repositories.service.convertToModel(au.churchId, await this.repositories.service.load(au.churchId, id));
         });
@@ -43,7 +43,7 @@ export class ServiceController extends AttendanceBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.services.edit)) return this.json({}, 401);
             else await this.repositories.service.delete(au.churchId, id);

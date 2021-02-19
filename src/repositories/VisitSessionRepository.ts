@@ -1,20 +1,21 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { VisitSession } from "../models";
-// import { PersonHelper } from "../helpers";
+import { UniqueIdHelper } from "../helpers";
 
 @injectable()
 export class VisitSessionRepository {
 
     public async save(visitSession: VisitSession) {
-        if (visitSession.id > 0) return this.update(visitSession); else return this.create(visitSession);
+        if (UniqueIdHelper.isMissing(visitSession.id)) return this.create(visitSession); else return this.update(visitSession);
     }
 
     public async create(visitSession: VisitSession) {
+        visitSession.id = UniqueIdHelper.shortId();
         return DB.query(
-            "INSERT INTO visitSessions (churchId, visitId, sessionId) VALUES (?, ?, ?);",
-            [visitSession.churchId, visitSession.visitId, visitSession.sessionId]
-        ).then((row: any) => { visitSession.id = row.insertId; return visitSession; });
+            "INSERT INTO visitSessions (id, churchId, visitId, sessionId) VALUES (?, ?, ?, ?);",
+            [visitSession.id, visitSession.churchId, visitSession.visitId, visitSession.sessionId]
+        ).then(() => { return visitSession; });
     }
 
     public async update(visitSession: VisitSession) {
@@ -24,31 +25,31 @@ export class VisitSessionRepository {
         ).then(() => { return visitSession });
     }
 
-    public async delete(churchId: number, id: number) {
+    public async delete(churchId: string, id: string) {
         DB.query("DELETE FROM visitSessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: number, id: number) {
+    public async load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM visitSessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: number) {
+    public async loadAll(churchId: string) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByVisitIdSessionId(churchId: number, visitId: number, sessionId: number) {
+    public async loadByVisitIdSessionId(churchId: string, visitId: string, sessionId: string) {
         return DB.queryOne("SELECT * FROM visitSessions WHERE churchId=? AND visitId=? AND sessionId=? LIMIT 1;", [churchId, visitId, sessionId]);
     }
 
-    public async loadByVisitIds(churchId: number, visitIds: number[]) {
+    public async loadByVisitIds(churchId: string, visitIds: string[]) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId IN (" + visitIds.join(",") + ");", [churchId]);
     }
 
-    public async loadByVisitId(churchId: number, visitId: number) {
+    public async loadByVisitId(churchId: string, visitId: string) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId=?;", [churchId, visitId]);
     }
 
-    public async loadForSessionPerson(churchId: number, sessionId: number, personId: number) {
+    public async loadForSessionPerson(churchId: string, sessionId: string, personId: string) {
         const sql = "SELECT v.*"
             + " FROM sessions s"
             + " LEFT OUTER JOIN serviceTimes st on st.id = s.serviceTimeId"
@@ -57,7 +58,7 @@ export class VisitSessionRepository {
         return DB.queryOne(sql, [churchId, sessionId, personId]);
     }
 
-    public async loadForSession(churchId: number, sessionId: number) {
+    public async loadForSession(churchId: string, sessionId: string) {
         const sql = "SELECT vs.*, v.personId FROM"
             + " visitSessions vs"
             + " INNER JOIN visits v on v.id = vs.visitId"
@@ -65,7 +66,7 @@ export class VisitSessionRepository {
         return DB.query(sql, [churchId, sessionId]);
     }
 
-    public convertToModel(churchId: number, data: any) {
+    public convertToModel(churchId: string, data: any) {
         const result: VisitSession = { id: data.id, visitId: data.visitId, sessionId: data.sessionId };
         if (data.personId !== undefined) {
             result.visit = { id: result.visitId, personId: data.personId }
@@ -75,7 +76,7 @@ export class VisitSessionRepository {
         return result;
     }
 
-    public convertAllToModel(churchId: number, data: any[]) {
+    public convertAllToModel(churchId: string, data: any[]) {
         const result: VisitSession[] = [];
         data.forEach(d => result.push(this.convertToModel(churchId, d)));
         return result;

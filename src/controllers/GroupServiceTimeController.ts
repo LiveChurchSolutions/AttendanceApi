@@ -8,7 +8,7 @@ import { Permissions } from "../helpers";
 export class GroupServiceTimeController extends AttendanceBaseController {
 
     @httpGet("/:id")
-    public async get(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async get(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             return this.repositories.groupServiceTime.convertAllToModel(au.churchId, await this.repositories.groupServiceTime.load(au.churchId, id));
         });
@@ -18,7 +18,7 @@ export class GroupServiceTimeController extends AttendanceBaseController {
     public async getAll(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             let result = null;
-            if (req.query.groupId !== undefined) result = await this.repositories.groupServiceTime.loadWithServiceNames(au.churchId, parseInt(req.query.groupId.toString(), 0));
+            if (req.query.groupId !== undefined) result = await this.repositories.groupServiceTime.loadWithServiceNames(au.churchId, req.query.groupId.toString());
             else result = await this.repositories.groupServiceTime.loadAll(au.churchId);
             return this.repositories.groupServiceTime.convertAllToModel(au.churchId, result);
         });
@@ -38,7 +38,7 @@ export class GroupServiceTimeController extends AttendanceBaseController {
     }
 
     @httpDelete("/:id")
-    public async delete(@requestParam("id") id: number, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
+    public async delete(@requestParam("id") id: string, req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
             if (!au.checkAccess(Permissions.services.edit)) return this.json({}, 401);
             else await this.repositories.groupServiceTime.delete(au.churchId, id);

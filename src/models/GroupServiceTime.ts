@@ -1,10 +1,10 @@
 import { ServiceTime } from "./";
 
 export class GroupServiceTime {
-    public id?: number;
-    public churchId?: number;
-    public groupId?: number;
-    public serviceTimeId?: number;
+    public id?: string;
+    public churchId?: string;
+    public groupId?: string;
+    public serviceTimeId?: string;
 
     public serviceTime?: ServiceTime;
 }
