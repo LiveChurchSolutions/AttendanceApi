@@ -2,14 +2,14 @@
 import { VisitSession } from "./";
 
 export class Visit {
-    public id?: number;
-    public churchId?: number;
-    public personId?: number;
-    public serviceId?: number;
-    public groupId?: number;
+    public id?: string;
+    public churchId?: string;
+    public personId?: string;
+    public serviceId?: string;
+    public groupId?: string;
     public visitDate?: Date;
     public checkinTime?: Date;
-    public addedBy?: number;
+    public addedBy?: string;
 
     // public person?: Person;
     public visitSessions?: VisitSession[]
