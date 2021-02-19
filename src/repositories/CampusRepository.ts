@@ -11,10 +11,11 @@ export class CampusRepository {
   }
 
   public async create(campus: Campus) {
+    campus.id = UniqueIdHelper.shortId();
     return DB.query(
       "INSERT INTO campuses (id, churchId, name, address1, address2, city, state, zip, removed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);",
-      [UniqueIdHelper.shortId(), campus.churchId, campus.name, campus.address1, campus.address2, campus.city, campus.state, campus.zip]
-    ).then((row: any) => { campus.id = row.insertId; return campus; });
+      [campus.id, campus.churchId, campus.name, campus.address1, campus.address2, campus.city, campus.state, campus.zip]
+    ).then(() => { return campus; });
   }
 
   public async update(campus: Campus) {

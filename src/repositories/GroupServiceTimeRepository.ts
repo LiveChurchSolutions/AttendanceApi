@@ -11,10 +11,11 @@ export class GroupServiceTimeRepository {
     }
 
     public async create(groupServiceTime: GroupServiceTime) {
+        groupServiceTime.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO groupServiceTimes (id, churchId, groupId, serviceTimeId) VALUES (?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), groupServiceTime.churchId, groupServiceTime.groupId, groupServiceTime.serviceTimeId]
-        ).then((row: any) => { groupServiceTime.id = row.insertId; return groupServiceTime; });
+            [groupServiceTime.id, groupServiceTime.churchId, groupServiceTime.groupId, groupServiceTime.serviceTimeId]
+        ).then(() => { return groupServiceTime; });
     }
 
     public async update(groupServiceTime: GroupServiceTime) {

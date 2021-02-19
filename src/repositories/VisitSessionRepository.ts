@@ -11,10 +11,11 @@ export class VisitSessionRepository {
     }
 
     public async create(visitSession: VisitSession) {
+        visitSession.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO visitSessions (id, churchId, visitId, sessionId) VALUES (?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), visitSession.churchId, visitSession.visitId, visitSession.sessionId]
-        ).then((row: any) => { visitSession.id = row.insertId; return visitSession; });
+            [visitSession.id, visitSession.churchId, visitSession.visitId, visitSession.sessionId]
+        ).then(() => { return visitSession; });
     }
 
     public async update(visitSession: VisitSession) {

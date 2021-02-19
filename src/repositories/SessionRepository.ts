@@ -12,11 +12,12 @@ export class SessionRepository {
     }
 
     public async create(session: Session) {
+        session.id = UniqueIdHelper.shortId();
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
         return DB.query(
             "INSERT INTO sessions (id, churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), session.churchId, session.groupId, session.serviceTimeId, sessionDate]
-        ).then((row: any) => { session.id = row.insertId; return session; });
+            [session.id, session.churchId, session.groupId, session.serviceTimeId, sessionDate]
+        ).then(() => { return session; });
     }
 
     public async update(session: Session) {

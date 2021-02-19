@@ -11,9 +11,10 @@ export class ServiceRepository {
     }
 
     public async create(service: Service) {
+        service.id = UniqueIdHelper.shortId();
         const sql = "INSERT INTO services (id, churchId, campusId, name, removed) VALUES (?, ?, ?, ?, 0);"
-        const params = [UniqueIdHelper.shortId(), service.churchId, service.campusId, service.name];
-        return DB.query(sql, params).then((row: any) => { service.id = row.insertId; return service; });
+        const params = [service.id, service.churchId, service.campusId, service.name];
+        return DB.query(sql, params).then(() => { return service; });
     }
 
     public async update(service: Service) {

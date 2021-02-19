@@ -11,10 +11,11 @@ export class ServiceTimeRepository {
     }
 
     public async create(serviceTime: ServiceTime) {
+        serviceTime.id = UniqueIdHelper.shortId();
         return DB.query(
             "INSERT INTO serviceTimes (id, churchId, serviceId, name, removed) VALUES (?, ?, ?, ?, 0);",
-            [UniqueIdHelper.shortId(), serviceTime.churchId, serviceTime.serviceId, serviceTime.name]
-        ).then((row: any) => { serviceTime.id = row.insertId; return serviceTime; });
+            [serviceTime.id, serviceTime.churchId, serviceTime.serviceId, serviceTime.name]
+        ).then(() => { return serviceTime; });
     }
 
     public async update(serviceTime: ServiceTime) {

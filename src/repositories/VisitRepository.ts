@@ -12,12 +12,13 @@ export class VisitRepository {
     }
 
     public async create(visit: Visit) {
+        visit.id = UniqueIdHelper.shortId();
         const visitDate = DateTimeHelper.toMysqlDate(visit.visitDate);
         const checkinTime = DateTimeHelper.toMysqlDate(visit.checkinTime);
         return DB.query(
             "INSERT INTO visits (id, churchId, personId, serviceId, groupId, visitDate, checkinTime, addedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
-            [UniqueIdHelper.shortId(), visit.churchId, visit.personId, visit.serviceId, visit.groupId, visitDate, checkinTime, visit.addedBy]
-        ).then((row: any) => { visit.id = row.insertId; return visit; });
+            [visit.id, visit.churchId, visit.personId, visit.serviceId, visit.groupId, visitDate, checkinTime, visit.addedBy]
+        ).then(() => { return visit; });
     }
 
     public async update(visit: Visit) {
