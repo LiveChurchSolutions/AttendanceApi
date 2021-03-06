@@ -53,7 +53,7 @@ export class VisitRepository {
 
     public async loadByServiceDatePeopleIds(churchId: string, serviceId: string, visitDate: Date, peopleIds: string[]) {
         const vsDate = DateTimeHelper.toMysqlDate(visitDate);
-        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN (" + peopleIds.join(",") + ")";
+        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN ('" + peopleIds.join("', '") + "')";
         return DB.query(sql, [churchId, serviceId, vsDate]);
     }
 
