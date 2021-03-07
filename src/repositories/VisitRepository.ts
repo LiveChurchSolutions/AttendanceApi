@@ -1,8 +1,7 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Visit } from "../models";
-import { DateTimeHelper } from '../helpers'
-import { UniqueIdHelper } from "../helpers";
+import { DateTimeHelper, UniqueIdHelper, ArrayHelper } from '../helpers'
 
 @injectable()
 export class VisitRepository {
@@ -53,8 +52,9 @@ export class VisitRepository {
 
     public async loadByServiceDatePeopleIds(churchId: string, serviceId: string, visitDate: Date, peopleIds: string[]) {
         const vsDate = DateTimeHelper.toMysqlDate(visitDate);
-        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN ('" + peopleIds.join("', '") + "')";
-        return DB.query(sql, [churchId, serviceId, vsDate]);
+        const sql = "SELECT * FROM visits WHERE churchId=? AND serviceId = ? AND visitDate = ? AND personId IN (" + ArrayHelper.fillArray("?", peopleIds.length).join(", ") + ")";
+        const params = [churchId, serviceId, vsDate].concat(peopleIds);
+        return DB.query(sql, params);
     }
 
     public async loadForPerson(churchId: string, personId: string) {

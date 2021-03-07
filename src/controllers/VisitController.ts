@@ -41,7 +41,6 @@ export class VisitController extends AttendanceBaseController {
             const currentDate = new Date();
             currentDate.setHours(0, 0, 0, 0);
             const peopleIds: string[] = [];
-            console.log(peopleIdList);
             peopleIdList.forEach(id => peopleIds.push(id));
 
             const visits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
