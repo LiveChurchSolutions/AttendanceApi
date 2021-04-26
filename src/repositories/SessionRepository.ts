@@ -1,8 +1,7 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { Session } from "../models";
-import { DateTimeHelper } from '../helpers'
-import { UniqueIdHelper } from "../helpers";
+import { DateTimeHelper, ArrayHelper, UniqueIdHelper } from '../helpers'
 
 @injectable()
 export class SessionRepository {
@@ -37,7 +36,7 @@ export class SessionRepository {
     }
 
     public async loadByIds(churchId: string, ids: string[]) {
-        return DB.query("SELECT * FROM sessions WHERE churchId=? AND id IN (" + ids.join(",") + ");", [churchId]);
+        return DB.query("SELECT * FROM sessions WHERE churchId=? AND id IN (" + ArrayHelper.fillArray("?", ids.length).join(", ") + ");", [churchId].concat(ids));
     }
 
     public async loadAll(churchId: string) {

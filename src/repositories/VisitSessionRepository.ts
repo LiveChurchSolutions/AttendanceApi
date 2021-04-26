@@ -1,7 +1,7 @@
 import { injectable } from "inversify";
 import { DB } from "../apiBase/db";
 import { VisitSession } from "../models";
-import { UniqueIdHelper } from "../helpers";
+import { UniqueIdHelper, ArrayHelper } from "../helpers";
 
 @injectable()
 export class VisitSessionRepository {
@@ -42,7 +42,7 @@ export class VisitSessionRepository {
     }
 
     public async loadByVisitIds(churchId: string, visitIds: string[]) {
-        return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId IN (" + visitIds.join(",") + ");", [churchId]);
+        return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId IN (" + ArrayHelper.fillArray("?", visitIds.length).join(", ") + ");", [churchId].concat(visitIds));
     }
 
     public async loadByVisitId(churchId: string, visitId: string) {
