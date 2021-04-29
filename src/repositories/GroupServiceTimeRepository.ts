@@ -6,38 +6,38 @@ import { UniqueIdHelper } from "../helpers";
 @injectable()
 export class GroupServiceTimeRepository {
 
-    public async save(groupServiceTime: GroupServiceTime) {
+    public save(groupServiceTime: GroupServiceTime) {
         if (UniqueIdHelper.isMissing(groupServiceTime.id)) return this.create(groupServiceTime); else return this.update(groupServiceTime);
     }
 
     public async create(groupServiceTime: GroupServiceTime) {
         groupServiceTime.id = UniqueIdHelper.shortId();
-        return DB.query(
-            "INSERT INTO groupServiceTimes (id, churchId, groupId, serviceTimeId) VALUES (?, ?, ?, ?);",
-            [groupServiceTime.id, groupServiceTime.churchId, groupServiceTime.groupId, groupServiceTime.serviceTimeId]
-        ).then(() => { return groupServiceTime; });
+        const sql = "INSERT INTO groupServiceTimes (id, churchId, groupId, serviceTimeId) VALUES (?, ?, ?, ?);";
+        const params = [groupServiceTime.id, groupServiceTime.churchId, groupServiceTime.groupId, groupServiceTime.serviceTimeId];
+        await DB.query(sql, params);
+        return groupServiceTime;
     }
 
     public async update(groupServiceTime: GroupServiceTime) {
-        return DB.query(
-            "UPDATE groupServiceTimes SET groupId=?, serviceTimeId=? WHERE id=? and churchId=?",
-            [groupServiceTime.groupId, groupServiceTime.serviceTimeId, groupServiceTime.id, groupServiceTime.churchId]
-        ).then(() => { return groupServiceTime });
+        const sql = "UPDATE groupServiceTimes SET groupId=?, serviceTimeId=? WHERE id=? and churchId=?";
+        const params = [groupServiceTime.groupId, groupServiceTime.serviceTimeId, groupServiceTime.id, groupServiceTime.churchId];
+        await DB.query(sql, params);
+        return groupServiceTime;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM groupServiceTimes WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM groupServiceTimes WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM groupServiceTimes WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         return DB.query("SELECT * FROM groupServiceTimes WHERE churchId=?;", [churchId]);
     }
 
-    public async loadWithServiceNames(churchId: string, groupId: string) {
+    public loadWithServiceNames(churchId: string, groupId: string) {
         const sql = "SELECT gst.*, concat(c.name, ' - ', s.name, ' - ', st.name) as serviceTimeName"
             + " FROM groupServiceTimes gst"
             + " INNER JOIN serviceTimes st on st.id = gst.serviceTimeId"
@@ -47,7 +47,7 @@ export class GroupServiceTimeRepository {
         return DB.query(sql, [churchId, groupId]);
     }
 
-    public async loadByServiceTimeIds(churchId: string, serviceTimeIds: string[]) {
+    public loadByServiceTimeIds(churchId: string, serviceTimeIds: string[]) {
         const sql = "SELECT * FROM groupServiceTimes WHERE churchId=? AND serviceTimeId IN (" + serviceTimeIds.join(",") + ")";
         return DB.query(sql, [churchId]);
     }

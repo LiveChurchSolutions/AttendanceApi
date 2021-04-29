@@ -6,50 +6,50 @@ import { UniqueIdHelper, ArrayHelper } from "../helpers";
 @injectable()
 export class VisitSessionRepository {
 
-    public async save(visitSession: VisitSession) {
+    public save(visitSession: VisitSession) {
         if (UniqueIdHelper.isMissing(visitSession.id)) return this.create(visitSession); else return this.update(visitSession);
     }
 
     public async create(visitSession: VisitSession) {
         visitSession.id = UniqueIdHelper.shortId();
-        return DB.query(
-            "INSERT INTO visitSessions (id, churchId, visitId, sessionId) VALUES (?, ?, ?, ?);",
-            [visitSession.id, visitSession.churchId, visitSession.visitId, visitSession.sessionId]
-        ).then(() => { return visitSession; });
+        const sql = "INSERT INTO visitSessions (id, churchId, visitId, sessionId) VALUES (?, ?, ?, ?);";
+        const params = [visitSession.id, visitSession.churchId, visitSession.visitId, visitSession.sessionId];
+        await DB.query(sql, params);
+        return visitSession;
     }
 
     public async update(visitSession: VisitSession) {
-        return DB.query(
-            "UPDATE visitSessions SET visitId=?, sessionId=? WHERE id=? and churchId=?",
-            [visitSession.visitId, visitSession.sessionId, visitSession.id, visitSession.churchId]
-        ).then(() => { return visitSession });
+        const sql = "UPDATE visitSessions SET visitId=?, sessionId=? WHERE id=? and churchId=?";
+        const params = [visitSession.visitId, visitSession.sessionId, visitSession.id, visitSession.churchId];
+        await DB.query(sql, params);
+        return visitSession;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM visitSessions WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM visitSessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM visitSessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByVisitIdSessionId(churchId: string, visitId: string, sessionId: string) {
+    public loadByVisitIdSessionId(churchId: string, visitId: string, sessionId: string) {
         return DB.queryOne("SELECT * FROM visitSessions WHERE churchId=? AND visitId=? AND sessionId=? LIMIT 1;", [churchId, visitId, sessionId]);
     }
 
-    public async loadByVisitIds(churchId: string, visitIds: string[]) {
+    public loadByVisitIds(churchId: string, visitIds: string[]) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId IN (" + ArrayHelper.fillArray("?", visitIds.length).join(", ") + ");", [churchId].concat(visitIds));
     }
 
-    public async loadByVisitId(churchId: string, visitId: string) {
+    public loadByVisitId(churchId: string, visitId: string) {
         return DB.query("SELECT * FROM visitSessions WHERE churchId=? AND visitId=?;", [churchId, visitId]);
     }
 
-    public async loadForSessionPerson(churchId: string, sessionId: string, personId: string) {
+    public loadForSessionPerson(churchId: string, sessionId: string, personId: string) {
         const sql = "SELECT v.*"
             + " FROM sessions s"
             + " LEFT OUTER JOIN serviceTimes st on st.id = s.serviceTimeId"
@@ -58,7 +58,7 @@ export class VisitSessionRepository {
         return DB.queryOne(sql, [churchId, sessionId, personId]);
     }
 
-    public async loadForSession(churchId: string, sessionId: string) {
+    public loadForSession(churchId: string, sessionId: string) {
         const sql = "SELECT vs.*, v.personId FROM"
             + " visitSessions vs"
             + " INNER JOIN visits v on v.id = vs.visitId"
