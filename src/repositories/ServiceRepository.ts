@@ -6,7 +6,7 @@ import { UniqueIdHelper } from "../helpers";
 @injectable()
 export class ServiceRepository {
 
-    public async save(service: Service) {
+    public save(service: Service) {
         if (UniqueIdHelper.isMissing(service.id)) return this.create(service); else return this.update(service);
     }
 
@@ -14,33 +14,34 @@ export class ServiceRepository {
         service.id = UniqueIdHelper.shortId();
         const sql = "INSERT INTO services (id, churchId, campusId, name, removed) VALUES (?, ?, ?, ?, 0);"
         const params = [service.id, service.churchId, service.campusId, service.name];
-        return DB.query(sql, params).then(() => { return service; });
+        await DB.query(sql, params)
+        return service;
     }
 
     public async update(service: Service) {
-        return DB.query(
-            "UPDATE services SET campusId=?, name=? WHERE id=? and churchId=?",
-            [service.campusId, service.name, service.id, service.churchId]
-        ).then(() => { return service });
+        const sql = "UPDATE services SET campusId=?, name=? WHERE id=? and churchId=?";
+        const params = [service.campusId, service.name, service.id, service.churchId];
+        await DB.query(sql, params);
+        return service;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("UPDATE services SET removed=1 WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("UPDATE services SET removed=1 WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM services WHERE id=? AND churchId=? AND removed=0;", [id, churchId]);
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         return DB.query("SELECT * FROM services WHERE churchId=? AND removed=0;", [churchId]);
     }
 
-    public async loadWithCampus(churchId: string) {
+    public loadWithCampus(churchId: string) {
         return DB.query("SELECT s.*, c.name as campusName FROM services s INNER JOIN campuses c on c.id=s.campusId WHERE s.churchId=? AND s.removed=0 ORDER BY c.name, s.name", [churchId]);
     }
 
-    public async searchByCampus(churchId: string, campusId: string) {
+    public searchByCampus(churchId: string, campusId: string) {
         return DB.query("SELECT * FROM services WHERE churchId=? AND (?=0 OR CampusId=?) AND removed=0 ORDER by name;", [churchId, campusId, campusId]);
     }
 

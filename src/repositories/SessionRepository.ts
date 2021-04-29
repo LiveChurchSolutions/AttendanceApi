@@ -6,49 +6,49 @@ import { DateTimeHelper, ArrayHelper, UniqueIdHelper } from '../helpers'
 @injectable()
 export class SessionRepository {
 
-    public async save(session: Session) {
+    public save(session: Session) {
         if (UniqueIdHelper.isMissing(session.id)) return this.create(session); else return this.update(session);
     }
 
     public async create(session: Session) {
         session.id = UniqueIdHelper.shortId();
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
-        return DB.query(
-            "INSERT INTO sessions (id, churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?, ?);",
-            [session.id, session.churchId, session.groupId, session.serviceTimeId, sessionDate]
-        ).then(() => { return session; });
+        const sql = "INSERT INTO sessions (id, churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?, ?);";
+        const params = [session.id, session.churchId, session.groupId, session.serviceTimeId, sessionDate];
+        await DB.query(sql, params);
+        return session;
     }
 
     public async update(session: Session) {
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
-        return DB.query(
-            "UPDATE sessions SET groupId=?, serviceTimeId=?, sessionDate=? WHERE id=? and churchId=?",
-            [session.groupId, session.serviceTimeId, sessionDate, session.id, session.churchId]
-        ).then(() => { return session });
+        const sql = "UPDATE sessions SET groupId=?, serviceTimeId=?, sessionDate=? WHERE id=? and churchId=?";
+        const params = [session.groupId, session.serviceTimeId, sessionDate, session.id, session.churchId];
+        await DB.query(sql, params);
+        return session;
     }
 
-    public async delete(churchId: string, id: string) {
-        DB.query("DELETE FROM sessions WHERE id=? AND churchId=?;", [id, churchId]);
+    public delete(churchId: string, id: string) {
+        return DB.query("DELETE FROM sessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async load(churchId: string, id: string) {
+    public load(churchId: string, id: string) {
         return DB.queryOne("SELECT * FROM sessions WHERE id=? AND churchId=?;", [id, churchId]);
     }
 
-    public async loadByIds(churchId: string, ids: string[]) {
+    public loadByIds(churchId: string, ids: string[]) {
         return DB.query("SELECT * FROM sessions WHERE churchId=? AND id IN (" + ArrayHelper.fillArray("?", ids.length).join(", ") + ");", [churchId].concat(ids));
     }
 
-    public async loadAll(churchId: string) {
+    public loadAll(churchId: string) {
         return DB.query("SELECT * FROM sessions WHERE churchId=?;", [churchId]);
     }
 
-    public async loadByGroupServiceTimeDate(churchId: string, groupId: string, serviceTimeId: string, sessionDate: Date) {
+    public loadByGroupServiceTimeDate(churchId: string, groupId: string, serviceTimeId: string, sessionDate: Date) {
         const sessDate = DateTimeHelper.toMysqlDate(sessionDate);
         return DB.queryOne("SELECT * FROM sessions WHERE churchId=? AND groupId = ? AND serviceTimeId = ? AND sessionDate = ?;", [churchId, groupId, serviceTimeId, sessDate]);
     }
 
-    public async loadByGroupIdWithNames(churchId: string, groupId: string) {
+    public loadByGroupIdWithNames(churchId: string, groupId: string) {
         const sql = "select s.id, "
             + " CASE"
             + "     WHEN st.name IS NULL THEN DATE_FORMAT(sessionDate, '%m/%d/%Y')"

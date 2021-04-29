@@ -5,17 +5,18 @@ import { AttendanceRecord } from "../models";
 @injectable()
 export class AttendanceRepository {
 
-    public async loadTree(churchId: string) {
+    public loadTree(churchId: string) {
         const sql = "SELECT c.id as campusId, IFNULL(c.name, 'Unassigned') as campusName, s.id as serviceId, s.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName"
             + " FROM campuses c"
             + " LEFT JOIN services s on s.campusId = c.id AND IFNULL(s.removed, 0) = 0"
             + " LEFT JOIN serviceTimes st on st.serviceId = s.id AND IFNULL(st.removed, 0) = 0"
             + " WHERE(c.id is NULL or c.churchId = ?) AND IFNULL(c.removed, 0) = 0"
             + " ORDER by campusName, serviceName, serviceTimeName";
-        return DB.query(sql, [churchId, churchId, churchId, churchId]);
+        const params = [churchId, churchId, churchId, churchId];
+        return DB.query(sql, params);
     }
 
-    public async loadTrend(churchId: string, campusId: string, serviceId: string, serviceTimeId: string, groupId: string) {
+    public loadTrend(churchId: string, campusId: string, serviceId: string, serviceTimeId: string, groupId: string) {
         const sql = "SELECT STR_TO_DATE(concat(year(v.visitDate), ' ', week(v.visitDate, 0), ' Sunday'), '%X %V %W') AS week, count(distinct(v.id)) as visits"
             + " FROM visits v"
             + " LEFT JOIN visitSessions vs on vs.visitId=v.id"
@@ -34,7 +35,7 @@ export class AttendanceRepository {
         return DB.query(sql, params);
     }
 
-    public async loadGroups(churchId: string, serviceId: string, week: Date) {
+    public loadGroups(churchId: string, serviceId: string, week: Date) {
         const sql = "SELECT ser.name as serviceName, st.name as serviceTimeName, s.groupId, v.personId"
             + " FROM visits v"
             + " INNER JOIN visitSessions vs on vs.churchId=v.churchId AND vs.visitId=v.id"
@@ -63,7 +64,7 @@ export class AttendanceRepository {
         return result;
     }
 
-    public async loadForPerson(churchId: string, personId: string) {
+    public loadForPerson(churchId: string, personId: string) {
         const sql = "SELECT v.visitDate, c.id as campusId, c.name as campusName, ser.id as serviceId, ser.name as serviceName, st.id as serviceTimeId, st.name as serviceTimeName, s.groupId"
             + " FROM visits v"
             + " INNER JOIN visitSessions vs on vs.visitId = v.id"
@@ -73,7 +74,8 @@ export class AttendanceRepository {
             + " LEFT OUTER JOIN campuses c on c.id = ser.campusId"
             + " WHERE v.churchId=? AND v.PersonId = ?"
             + " ORDER BY v.visitDate desc, c.name, ser.name, st.name";
-        return DB.query(sql, [churchId, personId]);
+        const params = [churchId, personId];
+        return DB.query(sql, params);
     }
 
 
