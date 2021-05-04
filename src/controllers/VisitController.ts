@@ -34,83 +34,89 @@ export class VisitController extends AttendanceBaseController {
     @httpGet("/checkin")
     public async getCheckin(req: express.Request<{}, {}, null>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
+            if (!au.checkAccess(Permissions.attendance.view) && !au.checkAccess(Permissions.attendance.checkin)) return this.json({}, 401);
+            else {
+                const result: Visit[] = []
+                const serviceId = req.query.serviceId.toString();
+                const peopleIdList = req.query.peopleIds.toString().split(",");
+                const currentDate = new Date();
+                currentDate.setHours(0, 0, 0, 0);
+                const peopleIds: string[] = [];
+                JSON.stringify(peopleIds);
+                peopleIdList.forEach(id => peopleIds.push(id));
 
-            const result: Visit[] = []
-            const serviceId = req.query.serviceId.toString();
-            const peopleIdList = req.query.peopleIds.toString().split(",");
-            const currentDate = new Date();
-            currentDate.setHours(0, 0, 0, 0);
-            const peopleIds: string[] = [];
-            JSON.stringify(peopleIds);
-            peopleIdList.forEach(id => peopleIds.push(id));
+                const visits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
+                const visitIds: string[] = [];
+                if (visits.length > 0) {
+                    visits.forEach(v => visitIds.push(v.id));
+                    const visitSessions = this.repositories.visitSession.convertAllToModel(au.churchId, await this.repositories.visitSession.loadByVisitIds(au.churchId, visitIds));
+                    if (visitSessions.length > 0) {
+                        const sessionIds: string[] = [];
+                        visitSessions.forEach(vs => sessionIds.push(vs.sessionId));
+                        const sessions = this.repositories.session.convertAllToModel(au.churchId, await this.repositories.session.loadByIds(au.churchId, sessionIds));
+                        visits.forEach(v => {
+                            v.visitSessions = [];
+                            visitSessions.forEach(vs => {
+                                if (vs.visitId === v.id) {
+                                    sessions.forEach(s => { if (s.id === vs.sessionId) vs.session = s });
+                                    v.visitSessions.push(vs)
+                                }
+                            });
+                            result.push(v);
+                        })
+                    }
 
-            const visits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
-            const visitIds: string[] = [];
-            if (visits.length > 0) {
-                visits.forEach(v => visitIds.push(v.id));
-                const visitSessions = this.repositories.visitSession.convertAllToModel(au.churchId, await this.repositories.visitSession.loadByVisitIds(au.churchId, visitIds));
-                if (visitSessions.length > 0) {
-                    const sessionIds: string[] = [];
-                    visitSessions.forEach(vs => sessionIds.push(vs.sessionId));
-                    const sessions = this.repositories.session.convertAllToModel(au.churchId, await this.repositories.session.loadByIds(au.churchId, sessionIds));
-                    visits.forEach(v => {
-                        v.visitSessions = [];
-                        visitSessions.forEach(vs => {
-                            if (vs.visitId === v.id) {
-                                sessions.forEach(s => { if (s.id === vs.sessionId) vs.session = s });
-                                v.visitSessions.push(vs)
-                            }
-                        });
-                        result.push(v);
-                    })
                 }
-
+                return result;
             }
-            return result;
+
         });
     }
 
     @httpPost("/checkin")
     public async postCheckin(req: express.Request<{}, {}, Visit[]>, res: express.Response): Promise<interfaces.IHttpActionResult> {
         return this.actionWrapper(req, res, async (au) => {
-            const deleteVisitIds: string[] = [];
-            const deleteVisitSessionIds: string[] = [];
+            if (!au.checkAccess(Permissions.attendance.edit) && !au.checkAccess(Permissions.attendance.checkin)) return this.json({}, 401);
+            else {
+                const deleteVisitIds: string[] = [];
+                const deleteVisitSessionIds: string[] = [];
 
-            const currentDate = new Date();
-            currentDate.setHours(0, 0, 0, 0);
+                const currentDate = new Date();
+                currentDate.setHours(0, 0, 0, 0);
 
-            const serviceId = req.query.serviceId.toString();
-            const peopleIdList = req.query.peopleIds.toString().split(",");
-            const peopleIds: string[] = [];
-            peopleIdList.forEach(id => peopleIds.push(id));
+                const serviceId = req.query.serviceId.toString();
+                const peopleIdList = req.query.peopleIds.toString().split(",");
+                const peopleIds: string[] = [];
+                peopleIdList.forEach(id => peopleIds.push(id));
 
-            const submittedVisits = [...req.body];
-            submittedVisits.forEach(sv => {
-                sv.churchId = au.churchId;
-                sv.visitDate = currentDate;
-                sv.checkinTime = new Date();
-                sv.addedBy = au.id;
-                sv.visitSessions.forEach(async vs => {
-                    vs.sessionId = await this.getSessionId(au.churchId, vs.session.serviceTimeId, vs.session.groupId, currentDate)
-                    vs.churchId = au.churchId;
+                const submittedVisits = [...req.body];
+                submittedVisits.forEach(sv => {
+                    sv.churchId = au.churchId;
+                    sv.visitDate = currentDate;
+                    sv.checkinTime = new Date();
+                    sv.addedBy = au.id;
+                    sv.visitSessions.forEach(async vs => {
+                        vs.sessionId = await this.getSessionId(au.churchId, vs.session.serviceTimeId, vs.session.groupId, currentDate)
+                        vs.churchId = au.churchId;
+                    });
                 });
-            });
 
-            const existingVisitIds: string[] = [];
-            const existingVisits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
-            if (existingVisits.length > 0) {
-                existingVisits.forEach(v => existingVisitIds.push(v.id));
-                const visitSessions = this.repositories.visitSession.convertAllToModel(au.churchId, await this.repositories.visitSession.loadByVisitIds(au.churchId, existingVisitIds));
-                this.populateDeleteIds(existingVisits, submittedVisits, visitSessions, deleteVisitIds, deleteVisitSessionIds);
+                const existingVisitIds: string[] = [];
+                const existingVisits = (peopleIds.length === 0) ? [] : this.repositories.visit.convertAllToModel(au.churchId, await this.repositories.visit.loadByServiceDatePeopleIds(au.churchId, serviceId, currentDate, peopleIds));
+                if (existingVisits.length > 0) {
+                    existingVisits.forEach(v => existingVisitIds.push(v.id));
+                    const visitSessions = this.repositories.visitSession.convertAllToModel(au.churchId, await this.repositories.visitSession.loadByVisitIds(au.churchId, existingVisitIds));
+                    this.populateDeleteIds(existingVisits, submittedVisits, visitSessions, deleteVisitIds, deleteVisitSessionIds);
+                }
+
+                const promises: Promise<any>[] = [];
+                this.getSavePromises(submittedVisits, promises);
+                deleteVisitIds.forEach(visitId => { promises.push(this.repositories.visit.delete(au.churchId, visitId)); });
+                deleteVisitSessionIds.forEach(visitSessionId => { promises.push(this.repositories.visitSession.delete(au.churchId, visitSessionId)); });
+
+                await Promise.all(promises);
+                return [];
             }
-
-            const promises: Promise<any>[] = [];
-            this.getSavePromises(submittedVisits, promises);
-            deleteVisitIds.forEach(visitId => { promises.push(this.repositories.visit.delete(au.churchId, visitId)); });
-            deleteVisitSessionIds.forEach(visitSessionId => { promises.push(this.repositories.visitSession.delete(au.churchId, visitSessionId)); });
-
-            await Promise.all(promises);
-            return [];
         });
     }
 
