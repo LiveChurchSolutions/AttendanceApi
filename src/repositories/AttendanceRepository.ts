@@ -25,10 +25,10 @@ export class AttendanceRepository {
             + " LEFT JOIN serviceTimes st on st.id = gst.serviceTimeId"
             + " LEFT JOIN services ser on ser.id = st.serviceId"
             + " WHERE v.churchId=?"
-            + " AND ? IN (0, s.groupId)"
-            + " AND ? IN (0, st.id)"
-            + " AND ? IN (0, ser.id)"
-            + " AND ? IN (0, ser.campusId)"
+            + " AND ? IN ('0', s.groupId)"
+            + " AND ? IN ('0', st.id)"
+            + " AND ? IN ('0', ser.id)"
+            + " AND ? IN ('0', ser.campusId)"
             + " GROUP BY year(v.visitDate), week(v.visitDate, 0), STR_TO_DATE(concat(year(v.visitDate), ' ', week(v.visitDate, 0), ' Sunday'), '%X %V %W')"
             + " ORDER BY year(v.visitDate), week(v.visitDate, 0);";
         const params = [churchId, groupId, serviceTimeId, serviceId, campusId];
