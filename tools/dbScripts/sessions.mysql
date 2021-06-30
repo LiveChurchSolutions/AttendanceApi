@@ -7,7 +7,6 @@ CREATE TABLE `sessions` (
   `serviceTimeId` char(11) DEFAULT NULL,
   `sessionDate` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `churchId` (`churchId`),
   KEY `groupId` (`groupId`),
   KEY `serviceTimeId` (`serviceTimeId`)

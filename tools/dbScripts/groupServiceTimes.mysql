@@ -6,7 +6,6 @@ CREATE TABLE `groupServiceTimes` (
   `groupId` char(11) DEFAULT NULL,
   `serviceTimeId` char(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `churchId` (`churchId`),
   KEY `groupId` (`groupId`),
   KEY `serviceTimeId` (`serviceTimeId`)

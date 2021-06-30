@@ -7,10 +7,10 @@ import { DateTimeHelper, ArrayHelper, UniqueIdHelper } from '../helpers'
 export class SessionRepository {
 
     public save(session: Session) {
-        if (UniqueIdHelper.isMissing(session.id)) return this.create(session); else return this.update(session);
+        return session.id ? this.update(session) : this.create(session);
     }
 
-    public async create(session: Session) {
+    private async create(session: Session) {
         session.id = UniqueIdHelper.shortId();
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
         const sql = "INSERT INTO sessions (id, churchId, groupId, serviceTimeId, sessionDate) VALUES (?, ?, ?, ?, ?);";
@@ -19,7 +19,7 @@ export class SessionRepository {
         return session;
     }
 
-    public async update(session: Session) {
+    private async update(session: Session) {
         const sessionDate = DateTimeHelper.toMysqlDate(session.sessionDate);
         const sql = "UPDATE sessions SET groupId=?, serviceTimeId=?, sessionDate=? WHERE id=? and churchId=?";
         const params = [session.groupId, session.serviceTimeId, sessionDate, session.id, session.churchId];

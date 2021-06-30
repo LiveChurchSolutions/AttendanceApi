@@ -6,7 +6,6 @@ CREATE TABLE `services` (
   `name` varchar(50) DEFAULT NULL,
   `removed` bit(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `id_UNIQUE` (`id`),
   KEY `churchId` (`churchId`),
   KEY `campusId` (`campusId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

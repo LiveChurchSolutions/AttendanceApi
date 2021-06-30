@@ -7,10 +7,10 @@ import { UniqueIdHelper, ArrayHelper } from "../helpers";
 export class VisitSessionRepository {
 
     public save(visitSession: VisitSession) {
-        if (UniqueIdHelper.isMissing(visitSession.id)) return this.create(visitSession); else return this.update(visitSession);
+        return visitSession.id ? this.update(visitSession) : this.create(visitSession);
     }
 
-    public async create(visitSession: VisitSession) {
+    private async create(visitSession: VisitSession) {
         visitSession.id = UniqueIdHelper.shortId();
         const sql = "INSERT INTO visitSessions (id, churchId, visitId, sessionId) VALUES (?, ?, ?, ?);";
         const params = [visitSession.id, visitSession.churchId, visitSession.visitId, visitSession.sessionId];
@@ -18,7 +18,7 @@ export class VisitSessionRepository {
         return visitSession;
     }
 
-    public async update(visitSession: VisitSession) {
+    private async update(visitSession: VisitSession) {
         const sql = "UPDATE visitSessions SET visitId=?, sessionId=? WHERE id=? and churchId=?";
         const params = [visitSession.visitId, visitSession.sessionId, visitSession.id, visitSession.churchId];
         await DB.query(sql, params);

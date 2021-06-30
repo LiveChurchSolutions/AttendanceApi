@@ -7,10 +7,10 @@ import { DateTimeHelper, UniqueIdHelper, ArrayHelper } from '../helpers'
 export class VisitRepository {
 
     public save(visit: Visit) {
-        if (UniqueIdHelper.isMissing(visit.id)) return this.create(visit); else return this.update(visit);
+        return visit.id ? this.update(visit) : this.create(visit);
     }
 
-    public async create(visit: Visit) {
+    private async create(visit: Visit) {
         visit.id = UniqueIdHelper.shortId();
         const visitDate = DateTimeHelper.toMysqlDate(visit.visitDate);
         const checkinTime = DateTimeHelper.toMysqlDate(visit.checkinTime);
@@ -20,7 +20,7 @@ export class VisitRepository {
         return visit;
     }
 
-    public async update(visit: Visit) {
+    private async update(visit: Visit) {
         const visitDate = DateTimeHelper.toMysqlDate(visit.visitDate);
         const checkinTime = DateTimeHelper.toMysqlDate(visit.checkinTime);
         const sql = "UPDATE visits SET personId=?, serviceId=?, groupId=?, visitDate=?, checkinTime=?, addedBy=? WHERE id=? and churchId=?";
