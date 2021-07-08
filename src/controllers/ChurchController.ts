@@ -14,7 +14,7 @@ export class ChurchController extends AttendanceBaseController {
     }
 
     @httpPost("/init")
-    public async init(req: express.Request<{}, {}, { user: UserInterface, church: ChurchInterface }>, res: express.Response): Promise<any> {
+    public async init(req: express.Request, res: express.Response): Promise<any> {
         return this.actionWrapper(req, res, async (au) => {
             const errors = await this.validateInit(au.churchId);
             if (errors.length > 0) return this.denyAccess(errors);
