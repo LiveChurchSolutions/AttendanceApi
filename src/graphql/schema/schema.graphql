@@ -1,0 +1,9 @@
+scalar DateTime
+
+type Query {
+  test: String
+}
+
+type Mutation {
+  create: String
+}

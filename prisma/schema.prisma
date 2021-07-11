@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model campuses {
+  id       String   @id @db.Char(11)
+  churchId String?  @db.Char(11)
+  name     String?  @db.VarChar(255)
+  address1 String?  @db.VarChar(50)
+  address2 String?  @db.VarChar(50)
+  city     String?  @db.VarChar(50)
+  state    String?  @db.VarChar(10)
+  zip      String?  @db.VarChar(10)
+  removed  Boolean? @db.Bit(1)
+
+  @@index([churchId], name: "churchId")
+}
+
+model groupServiceTimes {
+  id            String  @id @db.Char(11)
+  churchId      String? @db.Char(11)
+  groupId       String? @db.Char(11)
+  serviceTimeId String? @db.Char(11)
+
+  @@index([churchId], name: "churchId")
+  @@index([groupId], name: "groupId")
+  @@index([serviceTimeId], name: "serviceTimeId")
+}
+
+model serviceTimes {
+  id        String   @id @db.Char(11)
+  churchId  String?  @db.Char(11)
+  serviceId String?  @db.Char(11)
+  name      String?  @db.VarChar(50)
+  removed   Boolean? @db.Bit(1)
+
+  @@index([churchId], name: "churchId")
+  @@index([serviceId], name: "serviceId")
+}
+
+model services {
+  id       String   @id @db.Char(11)
+  churchId String?  @db.Char(11)
+  campusId String?  @db.Char(11)
+  name     String?  @db.VarChar(50)
+  removed  Boolean? @db.Bit(1)
+
+  @@index([campusId], name: "campusId")
+  @@index([churchId], name: "churchId")
+}
+
+model sessions {
+  id            String    @id @db.Char(11)
+  churchId      String?   @db.Char(11)
+  groupId       String?   @db.Char(11)
+  serviceTimeId String?   @db.Char(11)
+  sessionDate   DateTime? @db.DateTime(0)
+
+  @@index([churchId], name: "churchId")
+  @@index([groupId], name: "groupId")
+  @@index([serviceTimeId], name: "serviceTimeId")
+}
+
+model settings {
+  id       String   @id @db.Char(11)
+  churchId String?  @db.Char(11)
+  keyName  String?  @db.VarChar(255)
+  value    String?  @db.Text
+  public   Boolean? @db.Bit(1)
+
+  @@index([churchId], name: "churchId")
+}
+
+model visitSessions {
+  id        String  @id @db.Char(11)
+  churchId  String? @db.Char(11)
+  visitId   String? @db.Char(11)
+  sessionId String? @db.Char(11)
+
+  @@index([churchId], name: "churchId")
+  @@index([sessionId], name: "sessionId")
+  @@index([visitId], name: "visitId")
+}
+
+model visits {
+  id          String    @id @db.Char(11)
+  churchId    String?   @db.Char(11)
+  personId    String?   @db.Char(11)
+  serviceId   String?   @db.Char(11)
+  groupId     String?   @db.Char(11)
+  visitDate   DateTime? @db.DateTime(0)
+  checkinTime DateTime? @db.DateTime(0)
+  addedBy     String?   @db.Char(11)
+
+  @@index([churchId], name: "churchId")
+  @@index([groupId], name: "groupId")
+  @@index([personId], name: "personId")
+  @@index([serviceId], name: "serviceId")
+}

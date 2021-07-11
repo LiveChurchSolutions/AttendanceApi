@@ -13,3 +13,6 @@ DB_PASSWORD=
 
 JWT_SECRET_KEY=this is a test key that is a sentence
 JWT_EXPIRATION=2 days
+
+# Prisma
+DATABASE_URL="mysql://root:123456@localhost:3306/attendance?schema=public"
